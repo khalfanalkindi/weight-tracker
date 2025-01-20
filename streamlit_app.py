@@ -4,6 +4,12 @@ from datetime import datetime
 import pandas as pd
 import matplotlib.pyplot as plt
 
+st.set_page_config(
+    page_title="Khalfan Weight & BMI Tracker",
+    page_icon="📈",
+    layout="wide"
+)
+
 # Fixed height in meters
 HEIGHT = 1.82
 
@@ -56,7 +62,10 @@ initialize_db()
 if "weight_data" not in st.session_state:
     st.session_state.weight_data = get_data()
 
-st.title("Khalfan Weight & BMI Tracker")
+st.sidebar.title("Navigation")
+st.sidebar.divider()
+
+st.title("Khalfan Weight & BMI Tracker 📈")
 st.write("Track my weight and BMI over time and visualize my progress.")
 
 # Current date

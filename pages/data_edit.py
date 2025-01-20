@@ -2,6 +2,12 @@ import streamlit as st
 import pandas as pd
 import duckdb
 
+st.set_page_config(
+    page_title="Edit Weight Data",  # Title shown in the browser tab
+    page_icon="✏️",  # Icon for the browser tab and sidebar
+    layout="wide"
+)
+
 # Fetch data from DuckDB
 def get_data():
     conn = duckdb.connect("weight_tracker.db")
@@ -15,8 +21,9 @@ def update_data(date, weight):
     conn.execute("UPDATE weight_data SET weight = ? WHERE date = ?", (weight, date))
     conn.close()
 
-st.title("Edit Weight Data")
-st.sidebar.success("Select a page above.")
+st.title("Edit Weight Data ✏️")
+st.sidebar.title("Navigation")
+st.sidebar.divider()
 
 # Fetch data
 df = get_data()
