@@ -10,6 +10,9 @@ st.set_page_config(
     layout="wide"
 )
 
+st.sidebar.title("Navigation")
+st.sidebar.divider()
+
 # Fixed height in meters
 HEIGHT = 1.82
 
@@ -62,8 +65,6 @@ initialize_db()
 if "weight_data" not in st.session_state:
     st.session_state.weight_data = get_data()
 
-st.sidebar.title("Navigation")
-st.sidebar.divider()
 
 st.title("Khalfan Weight & BMI Tracker 📈")
 st.write("Track my weight and BMI over time and visualize my progress.")
