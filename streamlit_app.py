@@ -56,14 +56,14 @@ initialize_db()
 if "weight_data" not in st.session_state:
     st.session_state.weight_data = get_data()
 
-st.title("Weight & BMI Tracker")
-st.write("Track your weight and BMI over time and visualize your progress.")
+st.title("Khalfan Weight & BMI Tracker")
+st.write("Track my weight and BMI over time and visualize my progress.")
 
 # Current date
 current_date = datetime.now().strftime("%Y-%m-%d")
 
 # Input weight
-user_input = st.text_input(f"Enter your weight for today ({current_date}) or leave blank to skip:")
+user_input = st.text_input(f"My weight for today ({current_date}): (leave blank to skip)")
 
 if user_input:
     try:
