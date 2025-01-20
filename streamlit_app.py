@@ -1,43 +1,27 @@
+import duckdb
 import streamlit as st
 import pandas as pd
 from datetime import datetime
 import matplotlib.pyplot as plt
-import gspread
-from oauth2client.service_account import ServiceAccountCredentials
-
-# Google Sheets setup
-def setup_gsheets():
-    scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-    creds = ServiceAccountCredentials.from_json_keyfile_name("weight-track-ba123-7eb8e5bc0c15.json", scope)
-    client = gspread.authorize(creds)
-    return client
-
-# Load data from Google Sheets
-def load_data_from_gsheets(sheet_name="Weight Tracker"):
-    client = setup_gsheets()
-    sheet = client.open(sheet_name).sheet1
-    data = sheet.get_all_records()
-    return {row["Date"]: row["Weight"] for row in data}
-
-# Save data to Google Sheets
-def save_data_to_gsheets(data, sheet_name="Weight Tracker"):
-    client = setup_gsheets()
-    sheet = client.open(sheet_name).sheet1
-    sheet.clear()  # Clear the existing data
-    sheet.append_row(["Date", "Weight"])  # Add headers
-    for date, weight in data.items():
-        sheet.append_row([date, weight])
 
 # Fixed height in meters
 HEIGHT = 1.82
 
-# Load initial data from Google Sheets
+# DuckDB Database Functions
+def get_data():
+    conn = duckdb.connect("weight_tracker.db")
+    result = conn.execute("SELECT date, weight FROM weight_data ORDER BY date").fetchall()
+    conn.close()
+    return {row[0]: row[1] for row in result}
+
+def save_data(date, weight):
+    conn = duckdb.connect("weight_tracker.db")
+    conn.execute("INSERT INTO weight_data (date, weight) VALUES (?, ?) ON CONFLICT (date) DO UPDATE SET weight = ?", (date, weight, weight))
+    conn.close()
+
+# Load initial data
 if "weight_data" not in st.session_state:
-    try:
-        st.session_state.weight_data = load_data_from_gsheets()
-    except Exception as e:
-        st.error("Failed to load data from Google Sheets!")
-        st.session_state.weight_data = {}
+    st.session_state.weight_data = get_data()
 
 st.title("Weight & BMI Tracker")
 st.write("Track your weight and BMI over time and visualize your progress.")
@@ -52,7 +36,7 @@ if user_input:
     try:
         new_weight = float(user_input)
         st.session_state.weight_data[current_date] = new_weight
-        save_data_to_gsheets(st.session_state.weight_data)  # Save to Google Sheets
+        save_data(current_date, new_weight)  # Save to DuckDB
         st.success("New weight data saved!")
     except ValueError:
         st.error("Invalid input. Please enter a numeric value.")
@@ -60,8 +44,8 @@ if user_input:
 # Convert the dictionary to a DataFrame
 if st.session_state.weight_data:
     weight_df = pd.DataFrame(list(st.session_state.weight_data.items()), columns=["Date", "Weight"])
-    weight_df["Date"] = pd.to_datetime(weight_df["Date"])  # Ensure Date is in datetime format
-    weight_df.sort_values("Date", inplace=True)  # Sort data by date
+    weight_df["Date"] = pd.to_datetime(weight_df["Date"])
+    weight_df.sort_values("Date", inplace=True)
     weight_df.reset_index(drop=True, inplace=True)
 
     # Calculate BMI

@@ -1,31 +1,33 @@
-import gspread
-from oauth2client.service_account import ServiceAccountCredentials
+import duckdb
 
-# Google Sheets setup
-scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-creds = ServiceAccountCredentials.from_json_keyfile_name("weight-track-ba123-7eb8e5bc0c15.json", scope)
-client = gspread.authorize(creds)
+# Connect to DuckDB database (creates a file named weight_tracker.db)
+conn = duckdb.connect("weight_tracker.db")
 
-# Open the Google Sheet
-sheet = client.open("Weight Tracker").sheet1  # Replace "Weight Tracker" with your sheet's name
+# Create table if it doesn't exist
+conn.execute("""
+CREATE TABLE IF NOT EXISTS weight_data (
+    date VARCHAR PRIMARY KEY,
+    weight DOUBLE
+)
+""")
 
-# Initial weight data
+# Sample weight data
 initial_weight_data = [
-    ["2024-11-06", 118.2],
-    ["2024-11-13", 115.5],
-    ["2024-11-19", 112.3],
-    ["2024-11-27", 111.4],
-    ["2024-12-04", 110.2],
-    ["2024-12-11", 109.2],
-    ["2024-12-18", 108.4],
-    ["2024-12-25", 107.3],
-    ["2025-01-01", 105.4],
-    ["2025-01-08", 104.9],
-    ["2025-01-15", 103.8],
+    ("2024-11-06", 118.2),
+    ("2024-11-13", 115.5),
+    ("2024-11-19", 112.3),
+    ("2024-11-27", 111.4),
+    ("2024-12-04", 110.2),
+    ("2024-12-11", 109.2),
+    ("2024-12-18", 108.4),
+    ("2024-12-25", 107.3),
+    ("2025-01-01", 105.4),
+    ("2025-01-08", 104.9),
+    ("2025-01-15", 103.8),
 ]
 
-# Upload data to the Google Sheet
-for row in initial_weight_data:
-    sheet.append_row(row)
+# Insert data into the database
+for date, weight in initial_weight_data:
+    conn.execute("INSERT INTO weight_data (date, weight) VALUES (?, ?) ON CONFLICT (date) DO NOTHING", (date, weight))
 
-print("Data uploaded to Google Sheets!")
+print("Initial data uploaded to DuckDB!")
