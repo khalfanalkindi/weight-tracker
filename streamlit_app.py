@@ -7,19 +7,54 @@ import matplotlib.pyplot as plt
 # Fixed height in meters
 HEIGHT = 1.82
 
-# DuckDB Database Functions
+# Initial weight data
+INITIAL_WEIGHT_DATA = [
+    ("2024-11-06", 118.2),
+    ("2024-11-13", 115.5),
+    ("2024-11-19", 112.3),
+    ("2024-11-27", 111.4),
+    ("2024-12-04", 110.2),
+    ("2024-12-11", 109.2),
+    ("2024-12-18", 108.4),
+    ("2024-12-25", 107.3),
+    ("2025-01-01", 105.4),
+    ("2025-01-08", 104.9),
+    ("2025-01-15", 103.8),
+]
+
+# Database initialization
+def initialize_db():
+    conn = duckdb.connect("weight_tracker.db")
+    # Create table if it doesn't exist
+    conn.execute("""
+    CREATE TABLE IF NOT EXISTS weight_data (
+        date VARCHAR PRIMARY KEY,
+        weight DOUBLE
+    )
+    """)
+    # Insert initial data only if the table is empty
+    existing_data_count = conn.execute("SELECT COUNT(*) FROM weight_data").fetchone()[0]
+    if existing_data_count == 0:
+        conn.executemany("INSERT INTO weight_data (date, weight) VALUES (?, ?)", INITIAL_WEIGHT_DATA)
+    conn.close()
+
+# Fetch data from the database
 def get_data():
     conn = duckdb.connect("weight_tracker.db")
     result = conn.execute("SELECT date, weight FROM weight_data ORDER BY date").fetchall()
     conn.close()
     return {row[0]: row[1] for row in result}
 
+# Save new data to the database
 def save_data(date, weight):
     conn = duckdb.connect("weight_tracker.db")
     conn.execute("INSERT INTO weight_data (date, weight) VALUES (?, ?) ON CONFLICT (date) DO UPDATE SET weight = ?", (date, weight, weight))
     conn.close()
 
-# Load initial data
+# Initialize database (runs only on the first launch or if the database is missing)
+initialize_db()
+
+# Load data into session state
 if "weight_data" not in st.session_state:
     st.session_state.weight_data = get_data()
 
