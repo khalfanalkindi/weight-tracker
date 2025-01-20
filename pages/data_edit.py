@@ -21,8 +21,9 @@ st.sidebar.success("Select a page above.")
 # Fetch data
 df = get_data()
 
-# Display editable table
-edited_df = st.experimental_data_editor(df, num_rows="dynamic", use_container_width=True)
+
+# Display editable table using st.data_editor
+edited_df = st.data_editor(df, num_rows="dynamic", use_container_width=True)
 
 # Save updates
 if st.button("Save Changes"):
