@@ -1,7 +1,7 @@
 import duckdb
 import streamlit as st
-import pandas as pd
 from datetime import datetime
+import pandas as pd
 import matplotlib.pyplot as plt
 
 # Fixed height in meters
@@ -25,14 +25,12 @@ INITIAL_WEIGHT_DATA = [
 # Database initialization
 def initialize_db():
     conn = duckdb.connect("weight_tracker.db")
-    # Create table if it doesn't exist
     conn.execute("""
     CREATE TABLE IF NOT EXISTS weight_data (
         date VARCHAR PRIMARY KEY,
         weight DOUBLE
     )
     """)
-    # Insert initial data only if the table is empty
     existing_data_count = conn.execute("SELECT COUNT(*) FROM weight_data").fetchone()[0]
     if existing_data_count == 0:
         conn.executemany("INSERT INTO weight_data (date, weight) VALUES (?, ?)", INITIAL_WEIGHT_DATA)
@@ -51,7 +49,7 @@ def save_data(date, weight):
     conn.execute("INSERT INTO weight_data (date, weight) VALUES (?, ?) ON CONFLICT (date) DO UPDATE SET weight = ?", (date, weight, weight))
     conn.close()
 
-# Initialize database (runs only on the first launch or if the database is missing)
+# Initialize database
 initialize_db()
 
 # Load data into session state
@@ -71,7 +69,7 @@ if user_input:
     try:
         new_weight = float(user_input)
         st.session_state.weight_data[current_date] = new_weight
-        save_data(current_date, new_weight)  # Save to DuckDB
+        save_data(current_date, new_weight)
         st.success("New weight data saved!")
     except ValueError:
         st.error("Invalid input. Please enter a numeric value.")
