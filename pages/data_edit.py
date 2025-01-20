@@ -22,8 +22,6 @@ def update_data(date, weight):
     conn.close()
 
 st.title("Edit Weight Data ✏️")
-st.sidebar.title("Navigation")
-st.sidebar.divider()
 
 # Fetch data
 df = get_data()
